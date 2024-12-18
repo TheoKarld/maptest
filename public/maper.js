@@ -4,7 +4,7 @@ var maper = (() => {
     key = "7OevsHku8lQwYYKVGxtt",
     acuObj = {
       enableHighAccuracy: true,
-      timeout: 10000,
+      timeout: 5000,
       maximumAge: 0,
     },
     def = [9.7866631, 8.8525467];
@@ -13,6 +13,7 @@ var maper = (() => {
     if (map_1) return;
     map_1 = newmap("map");
     geolocate(map_1);
+    map_1.map.on("click", onMapClick);
     buttonup(map_1, "map_1_rack");
 
     // map_2 = newmap("map2");
@@ -29,10 +30,12 @@ var maper = (() => {
         loc,
         but("start tracking", "button", "key1", "btn btn-md btn-success"),
         but("stop tracking", "button", "key2", "btn btn-md btn-warning"),
+        but("mark location", "button", "key3", "btn btn-md btn-primary"),
       ]),
     ]);
     function myf1(v) {
       o.track = v;
+      alert(v ? "Tracking Active" : "Tracking Deactivated...");
     }
     addEvent(rd, "click", (e) => {
       e = ee(e);
@@ -41,9 +44,12 @@ var maper = (() => {
     });
   }
 
+  function coordistance(o) {
+    //map.distance();
+  }
   function newmap(v, fnc) {
     var map = L.map(v, {
-        center: L.latLng(0, 0),
+        center: L.latLng(9.7866631, 8.8525467),
         zoom: 5,
         measureControl: true,
         "pointer-event": "none",
@@ -62,44 +68,54 @@ var maper = (() => {
         detectRetina: true,
       }
     ).addTo(map);
-    map
-      .locate({ setView: true, watch: true })
-      .on("locationfound", function (e) {
-        //clg(e);
+    var marker = L.marker([def[0], def[1]]);
+    eo.markers.myMark = marker;
+    map.addLayer(marker);
+    // map
+    //   .locate({ setView: true, watch: true })
+    //   .on("locationfound", function (e) {
+    //     //clg(e);
 
-        // var circle = L.circle([e.latitude, e.longitude], e.accuracy / 2, {
-        //   weight: 1,
-        //   color: "blue",
-        //   fillColor: "#cacaca",
-        //   fillOpacity: 0.2,
-        // });
-        if (!eo.markers.myMark) {
-          var marker = L.marker([e.latitude, e.longitude]);
-          eo.markers.myMark = marker;
-          map.addLayer(marker);
-        } else {
-          var v1 = new L.LatLng(e.latitude, e.longitude);
-          if (!eo.view) {
-            map.setView(v1, 5);
-            eo.view = true;
-          }
-          clg("new marker location set");
-          if (eo.track) {
-            eo.markers.myMark.setLatLng(v1);
-          } else {
-            clg("tracking disabled");
-          }
-        }
-      })
-      .on("locationerror", function (e) {
-        console.log(e);
-        eo.error = e;
-        alert("Location access denied.");
-      });
+    //     // var circle = L.circle([e.latitude, e.longitude], e.accuracy / 2, {
+    //     //   weight: 1,
+    //     //   color: "blue",
+    //     //   fillColor: "#cacaca",
+    //     //   fillOpacity: 0.2,
+    //     // });
+    //     if (!eo.markers.myMark) {
+    //       var marker = L.marker([e.latitude, e.longitude]);
+    //       eo.markers.myMark = marker;
+    //       map.addLayer(marker);
+    //     } else {
+    //       var v1 = new L.LatLng(e.latitude, e.longitude);
+    //       if (!eo.view) {
+    //         map.setView(v1, 5);
+    //         eo.view = true;
+    //       }
+    //       if (eo.track) {
+    //         eo.markers.myMark.setLatLng(v1);
+    //       } else {
+    //         clg("tracking disabled");
+    //       }
+    //     }
+    //   })
+    //   .on("locationerror", function (e) {
+    //     console.log(e);
+    //     eo.error = e;
+    //     alert("Location access denied.");
+    //   });
 
     return eo;
   }
 
+  function onMapClick(e) {
+    clg(e);
+    map_1.map.setView(new L.LatLng(e.latlng.lat, e.latlng.lng), 6);
+    L.popup()
+      .setLatLng(e.latlng)
+      .setContent(`You clicked the map at ${e.latlng.toString()}`)
+      .openOn(map_1.map);
+  }
   function geoposition(mp) {
     if (!navigator.geolocation) {
       alert("device not allowing live tracking!!");
@@ -120,9 +136,7 @@ var maper = (() => {
           clg("tracking disabled");
         }
       }
-      clg(res);
       clg("LatLng data");
-      clg(v1);
       sendmylocation({ user: "", coords: { ...v1 } });
     }
     function errFnc(err) {
@@ -143,7 +157,7 @@ var maper = (() => {
   }
 
   async function sendmylocation(o) {
-    clg(o);
+    // clg(o);
     //var ax = await fetch("/myLocation", { method: "POST", body: Js(o) });
     //clg(ax);
     //sendxml({ t: "data", o: o, r: "/myLocation" });
