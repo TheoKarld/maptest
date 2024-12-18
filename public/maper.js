@@ -19,9 +19,12 @@ var maper = (() => {
   }
 
   function buttonup(o, id) {
-    var rd = document.getElementById(id);
+    var rd = document.getElementById(id),
+      loc = DIV("", "m-2 widthun");
+    o.lock = loc;
     feedme(rd, [
       DIV("", "m-2 my-3", "", [
+        loc,
         but("start tracking", "button", "key1", "btn btn-md btn-success"),
         but("stop tracking", "button", "key2", "btn btn-md btn-warning"),
       ]),
@@ -104,6 +107,8 @@ var maper = (() => {
 
     function respFnc(res) {
       clg("geoposition log");
+      if (mp.lock)
+        mp.lock.innerHTML = `Lat - ${res.coords.latitude} / Lng - ${res.coords.longitude}`;
       if (mp.markers && mp.markers.myMark) {
         if (mp.track) {
           mp.markers.myMark.setLatLng(
