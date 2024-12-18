@@ -42,6 +42,7 @@ var maper = (() => {
       alert(v ? "Tracking Active" : "Tracking Deactivated...");
     }
     function myf2() {
+      alert("please click any where once to mark point");
       o.mark = true;
     }
     addEvent(rd, "click", (e) => {
@@ -82,7 +83,7 @@ var maper = (() => {
     clg(def.lat + "-" + def.lng);
     map.setView(def, 10);
     map
-      .locate({ setView: true, watch: true })
+      .locate({ watch: true })
       .on("locationfound", function (e) {
         //clg(e);
 
