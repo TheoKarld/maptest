@@ -69,6 +69,7 @@ var maper = (() => {
     L.tileLayer(`http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}`, {
       //style URL
       tileSize: 512,
+      subdomains: ["mt0", "mt1", "mt2", "mt3"],
       zoomOffset: -1,
       minZoom: 2,
       crossOrigin: true,
