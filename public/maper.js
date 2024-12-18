@@ -95,41 +95,31 @@ var maper = (() => {
       crossOrigin: true,
       detectRetina: true,
     }).addTo(map);
-    var marker = L.marker([def.lat, def.lng]);
-    eo.markers.myMark = marker;
-    map.addLayer(marker);
-    clg(def.lat + "-" + def.lng);
-    map.setView(def, 18);
-    // map
-    //   .locate({ setView: true, watch: true })
-    //   .on("locationfound", function (e) {
-    //     //clg(e);
+    map
+      .locate({ setView: false, watch: false })
+      .on("locationfound", function (e) {
+        //clg(e);
 
-    //     // var circle = L.circle([e.latitude, e.longitude], e.accuracy / 2, {
-    //     //   weight: 1,
-    //     //   color: "blue",
-    //     //   fillColor: "#cacaca",
-    //     //   fillOpacity: 0.2,
-    //     // });
-    //     if (!eo.markers.myMark) {
-    //       var marker = L.marker([e.latitude, e.longitude]);
-    //       eo.markers.myMark = marker;
-    //       map.addLayer(marker);
-    //     } else {
-    //       var v1 = new L.LatLng(e.latitude, e.longitude);
-    //       if (eo.track) {
-    //         eo.markers.myMark.setLatLng(v1);
-    //         map.setView(v1, 15);
-    //       } else {
-    //         clg("tracking disabled");
-    //       }
-    //     }
-    //   })
-    //   .on("locationerror", function (e) {
-    //     console.log(e);
-    //     eo.error = e;
-    //     alert("Location access denied.");
-    //   });
+        // var circle = L.circle([e.latitude, e.longitude], e.accuracy / 2, {
+        //   weight: 1,
+        //   color: "blue",
+        //   fillColor: "#cacaca",
+        //   fillOpacity: 0.2,
+        // });
+
+        if (!eo.markers.myMark) {
+          def = new L.LatLng(e.latitude, e.longitude);
+          var marker = L.marker([e.latitude, e.longitude]);
+          eo.markers.myMark = marker;
+          map.addLayer(marker);
+          map.setView(def, 19);
+        }
+      })
+      .on("locationerror", function (e) {
+        console.log(e);
+        eo.error = e;
+        alert("Location access denied.");
+      });
 
     return eo;
   }
