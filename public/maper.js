@@ -146,7 +146,8 @@ var maper = (() => {
       if (mp.markers && mp.markers.myMark) {
         if (mp.track) {
           mp.markers.myMark.setLatLng(v1);
-          mp.map.setView(def, 18);
+          //mp.map.setView(def, 18);
+          mp.map.panTo(v1);
           clg("new marker location set");
         } else {
           clg("tracking disabled");
