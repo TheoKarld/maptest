@@ -4,7 +4,7 @@ var maper = (() => {
     key = "7OevsHku8lQwYYKVGxtt",
     acuObj = {
       enableHighAccuracy: true,
-      timeout: 5000,
+      timeout: 10000,
       maximumAge: 0,
     };
 
@@ -19,7 +19,7 @@ var maper = (() => {
   function newmap(v, fnc) {
     var map = L.map(v, {
         center: L.latLng(0, 0),
-        zoom: 17,
+        zoom: 10,
       }),
       eo = { map: map, markers: {} };
 
@@ -29,7 +29,7 @@ var maper = (() => {
         //style URL
         tileSize: 512,
         zoomOffset: -1,
-        minZoom: 1,
+        minZoom: 2,
         crossOrigin: true,
         detectRetina: true,
       }
@@ -52,7 +52,7 @@ var maper = (() => {
         } else {
           var v1 = new L.LatLng(e.latitude, e.longitude);
           if (!eo.view) {
-            map.setView(v1, 13);
+            //map.setView(v1, 13);
             eo.view = true;
           }
           clg("new marker location set");
