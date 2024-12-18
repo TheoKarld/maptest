@@ -65,18 +65,15 @@ var maper = (() => {
         minZoom: 1,
       }),
       eo = { map: map, markers: {}, track: true };
-    mapinteraction(map, true);
-    L.tileLayer(
-      `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}`,
-      {
-        //style URL
-        tileSize: 512,
-        zoomOffset: -1,
-        minZoom: 2,
-        crossOrigin: true,
-        detectRetina: true,
-      }
-    ).addTo(map);
+    mapinteraction(map, true); //https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}
+    L.tileLayer(`http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}`, {
+      //style URL
+      tileSize: 512,
+      zoomOffset: -1,
+      minZoom: 2,
+      crossOrigin: true,
+      detectRetina: true,
+    }).addTo(map);
     var marker = L.marker([def.lat, def.lng]);
     eo.markers.myMark = marker;
     map.addLayer(marker);
@@ -184,3 +181,33 @@ var maper = (() => {
     init: startmap,
   };
 })();
+
+//static
+// googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+//   maxZoom: 20,
+//   subdomains:['mt0','mt1','mt2','mt3']
+// });
+// Hybrid,
+
+// googleHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+//   maxZoom: 20,
+//   subdomains:['mt0','mt1','mt2','mt3']
+// });
+// satellite,
+
+// googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+//   maxZoom: 20,
+//   subdomains:['mt0','mt1','mt2','mt3']
+// });
+// Terrain
+
+// googleTerrain = L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',{
+//   maxZoom: 20,
+//   subdomains:['mt0','mt1','mt2','mt3']
+// });
+// Note that difference in the "lyrs" parameter in the URL:
+
+// Hybrid: s,h;
+// Satellite: s;
+// Streets: m;
+// Terrain: p;
