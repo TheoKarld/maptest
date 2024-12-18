@@ -44,7 +44,8 @@ app.post("/", (req, res) => {
 });
 
 async function calldb() {
-  var plug = new MongoClient(url);
+  return;
+  var plug = new MongoClient(murl);
   await plug.connect();
   dL = plug;
   db = await plug.db(dbn);

@@ -11,15 +11,15 @@ var maper = (() => {
   function startmap() {
     if (map_1) return;
     map_1 = newmap("map");
-    geolocate(map_1.map);
+    geolocate(map_1);
     map_2 = newmap("map2");
-    geolocate(map_2.map);
+    geolocate(map_2);
   }
 
   function newmap(v, fnc) {
     var map = L.map(v, {
         center: L.latLng(0, 0),
-        zoom: 13,
+        zoom: 15,
       }),
       eo = { map: map, markers: {} };
 
@@ -38,16 +38,23 @@ var maper = (() => {
       .locate({ setView: true, watch: true })
       .on("locationfound", function (e) {
         //clg(e);
-        var marker = L.marker([e.latitude, e.longitude]);
+
         // var circle = L.circle([e.latitude, e.longitude], e.accuracy / 2, {
         //   weight: 1,
         //   color: "blue",
         //   fillColor: "#cacaca",
         //   fillOpacity: 0.2,
         // });
-        eo.markers.myMark = marker;
-        map.addLayer(marker);
-        map.setView(new L.LatLng(e.latitude, e.longitude), 13);
+        if (!eo.markers.myMark) {
+          var marker = L.marker([e.latitude, e.longitude]);
+          eo.markers.myMark = marker;
+          map.addLayer(marker);
+        } else {
+          var v1 = new L.LatLng(e.latitude, e.longitude);
+          map.setView(v1, 13);
+          clg("new marker location set");
+          eo.markers.myMark.setLatLng(v1);
+        }
       })
       .on("locationerror", function (e) {
         console.log(e);
@@ -67,7 +74,12 @@ var maper = (() => {
 
     function respFnc(res) {
       clg("geoposition log");
-      mp.setView(new L.LatLng(res.coords.latitude, res.coords.longitude), 13);
+      if (mp.markers && mp.markers.myMark) {
+        mp.markers.myMark.setLatLng(
+          new L.LatLng(res.coords.latitude, res.coords.longitude)
+        );
+        clg("new marker location set");
+      }
       clg(res);
       clg("LatLng data");
       clg(new L.LatLng(res.coords.latitude, res.coords.longitude));
@@ -79,7 +91,7 @@ var maper = (() => {
   }
 
   async function geolocate(mp) {
-    await L.Control.geocoder().addTo(mp);
+    await L.Control.geocoder().addTo(mp.map);
     geoposition(mp);
   }
 
