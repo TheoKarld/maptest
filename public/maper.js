@@ -19,7 +19,7 @@ var maper = (() => {
   function newmap(v, fnc) {
     var map = L.map(v, {
         center: L.latLng(0, 0),
-        zoom: 10,
+        zoom: 5,
       }),
       eo = { map: map, markers: {} };
 
@@ -52,7 +52,7 @@ var maper = (() => {
         } else {
           var v1 = new L.LatLng(e.latitude, e.longitude);
           if (!eo.view) {
-            //map.setView(v1, 13);
+            map.setView(v1, 5);
             eo.view = true;
           }
           clg("new marker location set");
