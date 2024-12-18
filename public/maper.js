@@ -20,6 +20,9 @@ var maper = (() => {
     var map = L.map(v, {
         center: L.latLng(0, 0),
         zoom: 5,
+        measureControl: true,
+        zoomControl: true,
+        minZoom: 1,
       }),
       eo = { map: map, markers: {} };
 
