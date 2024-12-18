@@ -6,7 +6,8 @@ var maper = (() => {
       enableHighAccuracy: true,
       timeout: 10000,
       maximumAge: 0,
-    };
+    },
+    def = [9.7866631, 8.8525467];
 
   function startmap() {
     if (map_1) return;
@@ -41,13 +42,12 @@ var maper = (() => {
 
   function newmap(v, fnc) {
     var map = L.map(v, {
-        center: L.latLng(0, 0),
         zoom: 5,
         measureControl: true,
         zoomControl: true,
         minZoom: 1,
       }),
-      eo = { map: map, markers: {} };
+      eo = { map: map, markers: {}, track: true };
     mapinteraction(map, true);
     L.tileLayer(
       `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}`,
@@ -72,11 +72,11 @@ var maper = (() => {
         //   fillOpacity: 0.2,
         // });
         if (!eo.markers.myMark) {
-          var marker = L.marker([e.latitude, e.longitude]);
+          var marker = L.marker([def[0], def[1]]);
           eo.markers.myMark = marker;
           map.addLayer(marker);
         } else {
-          var v1 = new L.LatLng(e.latitude, e.longitude);
+          var v1 = new L.LatLng(def[0], def[1]);
           if (!eo.view) {
             map.setView(v1, 5);
             eo.view = true;
@@ -107,13 +107,10 @@ var maper = (() => {
 
     function respFnc(res) {
       clg("geoposition log");
-      if (mp.lock)
-        mp.lock.innerHTML = `Lat - ${res.coords.latitude} / Lng - ${res.coords.longitude}`;
+      if (mp.lock) mp.lock.innerHTML = `Lat - ${def[0]} / Lng - ${def[1]}`;
       if (mp.markers && mp.markers.myMark) {
         if (mp.track) {
-          mp.markers.myMark.setLatLng(
-            new L.LatLng(res.coords.latitude, res.coords.longitude)
-          );
+          mp.markers.myMark.setLatLng(new L.LatLng(def[0], def[1]));
           clg("new marker location set");
         } else {
           clg("tracking disabled");
@@ -121,7 +118,7 @@ var maper = (() => {
       }
       clg(res);
       clg("LatLng data");
-      clg(new L.LatLng(res.coords.latitude, res.coords.longitude));
+      clg(new L.LatLng(def[0], def[1]));
     }
     function errFnc(err) {
       clg("position error");
