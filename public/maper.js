@@ -21,11 +21,11 @@ var maper = (() => {
         center: L.latLng(0, 0),
         zoom: 5,
         measureControl: true,
-        zoomControl: true,
+        zoomControl: false,
         minZoom: 1,
       }),
       eo = { map: map, markers: {} };
-
+    mapinteraction(map, true);
     L.tileLayer(
       `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}`,
       {
@@ -95,7 +95,13 @@ var maper = (() => {
       clg(err);
     }
   }
-
+  function mapinteraction(map, state) {
+    if (state) {
+      map.dragging.enable();
+      clg(map);
+      map.scrollWheelZoom.enable();
+    }
+  }
   async function geolocate(mp) {
     await L.Control.geocoder().addTo(mp.map);
     geoposition(mp);
