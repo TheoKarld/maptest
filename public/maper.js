@@ -14,9 +14,10 @@ var maper = (() => {
     map_1 = newmap("map");
     geolocate(map_1);
     buttonup(map_1, "map_1_rack");
-    map_2 = newmap("map2");
-    geolocate(map_2);
-    buttonup(map_2, "map_2_rack");
+
+    // map_2 = newmap("map2");
+    // geolocate(map_2);
+    // buttonup(map_2, "map_2_rack");
   }
 
   function buttonup(o, id) {
@@ -42,9 +43,11 @@ var maper = (() => {
 
   function newmap(v, fnc) {
     var map = L.map(v, {
+        center: L.latLng(0, 0),
         zoom: 5,
         measureControl: true,
-        zoomControl: true,
+        dragging: false,
+        tap: false,
         minZoom: 1,
       }),
       eo = { map: map, markers: {}, track: true };
@@ -72,11 +75,11 @@ var maper = (() => {
         //   fillOpacity: 0.2,
         // });
         if (!eo.markers.myMark) {
-          var marker = L.marker([def[0], def[1]]);
+          var marker = L.marker([e.latitude, e.longitude]);
           eo.markers.myMark = marker;
           map.addLayer(marker);
         } else {
-          var v1 = new L.LatLng(def[0], def[1]);
+          var v1 = new L.LatLng(e.latitude, e.longitude);
           if (!eo.view) {
             map.setView(v1, 5);
             eo.view = true;
@@ -106,11 +109,13 @@ var maper = (() => {
     navigator.geolocation.watchPosition(respFnc, errFnc, acuObj);
 
     function respFnc(res) {
+      var v1 = new L.LatLng(res.coords.latitude, res.coords.longitude);
       clg("geoposition log");
-      if (mp.lock) mp.lock.innerHTML = `Lat - ${def[0]} / Lng - ${def[1]}`;
+      if (mp.lock)
+        mp.lock.innerHTML = `Lat - ${res.coords.latitude} / Lng - ${res.coords.longitude}`;
       if (mp.markers && mp.markers.myMark) {
         if (mp.track) {
-          mp.markers.myMark.setLatLng(new L.LatLng(def[0], def[1]));
+          mp.markers.myMark.setLatLng(v1);
           clg("new marker location set");
         } else {
           clg("tracking disabled");
@@ -118,7 +123,8 @@ var maper = (() => {
       }
       clg(res);
       clg("LatLng data");
-      clg(new L.LatLng(def[0], def[1]));
+      clg(v1);
+      sendmylocation({ user: "", coords: { ...v1 } });
     }
     function errFnc(err) {
       clg("position error");
@@ -135,6 +141,13 @@ var maper = (() => {
   async function geolocate(mp) {
     await L.Control.geocoder().addTo(mp.map);
     geoposition(mp);
+  }
+
+  async function sendmylocation(o) {
+    clg(o);
+    //var ax = await fetch("/myLocation", { method: "POST", body: Js(o) });
+    //clg(ax);
+    //sendxml({ t: "data", o: o, r: "/myLocation" });
   }
 
   return {

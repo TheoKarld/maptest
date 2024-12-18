@@ -2,9 +2,12 @@ var murl = "mongodb://127.0.0.1:27017",
   url = "mongodb+srv://codeplay:cDoV4OgCwMcMwSAD@cluster0.u9bv6.mongodb.net/",
   express = require("express"),
   app = express(),
+  http = require("http"),
+  server = http.Server(app),
   cors = require("cors"),
   { MongoClient } = require("mongodb"),
   fs = require("fs"),
+  bodyParser = require("body-parser"),
   path = require("path"),
   _dirname = path.resolve(),
   dbn = "codeplay",
@@ -14,7 +17,9 @@ var murl = "mongodb://127.0.0.1:27017",
 
 calldb();
 
-app.use(express.json());
+app.options("*", cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(cors({ origin: "*" }));
 app.use(express.static(_dirname));
@@ -41,6 +46,11 @@ app.get("/", (req, res) => {
 
 app.post("/", (req, res) => {
   var a = req.body;
+});
+app.post("/myLocation", (req, res) => {
+  var a = req.body;
+  clg(a);
+  res.json({ hello: true });
 });
 
 async function calldb() {
@@ -105,5 +115,5 @@ function edey(l) {
   return fs.existsSync(l);
 }
 
-app.listen(3003);
+server.listen(3003, clg);
 console.log("express server active");
