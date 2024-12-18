@@ -37,10 +37,12 @@ var maper = (() => {
       o.track = v;
       alert(v ? "Tracking Active" : "Tracking Deactivated...");
     }
+    function myf2() {}
     addEvent(rd, "click", (e) => {
       e = ee(e);
       if (e.id == "key1") myf1(true);
       if (e.id == "key2") myf1(false);
+      if (e.id == "key3") myf2();
     });
   }
 
@@ -71,6 +73,7 @@ var maper = (() => {
     var marker = L.marker([def[0], def[1]]);
     eo.markers.myMark = marker;
     map.addLayer(marker);
+    map.setView(new L.LatLng(def[0], def[1]), 5);
     // map
     //   .locate({ setView: true, watch: true })
     //   .on("locationfound", function (e) {
@@ -110,7 +113,7 @@ var maper = (() => {
 
   function onMapClick(e) {
     clg(e);
-    map_1.map.setView(new L.LatLng(e.latlng.lat, e.latlng.lng), 6);
+    //map_1.map.setView(new L.LatLng(e.latlng.lat, e.latlng.lng), 6);
     L.popup()
       .setLatLng(e.latlng)
       .setContent(`You clicked the map at ${e.latlng.toString()}`)
