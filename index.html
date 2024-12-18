@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="/public/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/public/styleit.css" />
+    <link rel="stylesheet" href="/public/tailwind.css" />
+    <script type="text/javascript" src="/public/leaflet/leaflet.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"
+    />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script type="text/javascript" src="/public/basic.js"></script>
+    <script type="text/javascript" src="/public/maper.js"></script>
+    <script type="text/javascript">
+      function newmap() {
+        maper.init();
+      }
+
+      addEvent(window, "load", newmap);
+    </script>
+    <style>
+      .maper {
+        width: 500px;
+        height: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid gap-32 gap-md-4 mb-8 md:grid-cols-2 xl:grid-cols-2 mt-5">
+      <div class="col-12 col-md-5">
+        <div id="map" class="maper widthun"></div>
+        <div id="map_1_rack"></div>
+      </div>
+      <div class="col-12 col-md-5">
+        <div id="map2" class="maper widthun"></div>
+        <div id="map_2_rack"></div>
+      </div>
+    </div>
+  </body>
+</html>
