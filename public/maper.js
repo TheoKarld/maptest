@@ -53,6 +53,7 @@ var maper = (() => {
       o.mark = true;
     }
     function myf3() {
+      alert("Mark 1 Set");
       if (!o.mark_1) {
         o.mark_1 = new L.LatLng(def.lat, def.lng);
       } else {
