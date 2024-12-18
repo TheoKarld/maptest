@@ -13,8 +13,9 @@ var maper = (() => {
     map_1 = newmap("map");
     geolocate(map_1);
     buttonup(map_1, "map_1_rack");
-    // map_2 = newmap("map2");
-    // geolocate(map_2);
+    map_2 = newmap("map2");
+    geolocate(map_2);
+    buttonup(map_2, "map_2_rack");
   }
 
   function buttonup(o, id) {
