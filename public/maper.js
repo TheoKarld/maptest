@@ -12,8 +12,27 @@ var maper = (() => {
     if (map_1) return;
     map_1 = newmap("map");
     geolocate(map_1);
+    buttonup(map_1, "map_1_rack");
     // map_2 = newmap("map2");
     // geolocate(map_2);
+  }
+
+  function buttonup(o, id) {
+    var rd = document.getElementById(id);
+    feedme(rd, [
+      DIV("", "m-2 my-3", "", [
+        but("start tracking", "button", "key1", "btn btn-md btn-success"),
+        but("stop tracking", "button", "key2", "btn btn-md btn-warning"),
+      ]),
+    ]);
+    function myf1(v) {
+      o.track = v;
+    }
+    addEvent(rd, "click", (e) => {
+      e = ee(e);
+      if (e.id == "key1") myf1(true);
+      if (e.id == "key2") myf1(false);
+    });
   }
 
   function newmap(v, fnc) {
@@ -21,7 +40,7 @@ var maper = (() => {
         center: L.latLng(0, 0),
         zoom: 5,
         measureControl: true,
-        zoomControl: false,
+        zoomControl: true,
         minZoom: 1,
       }),
       eo = { map: map, markers: {} };
@@ -59,7 +78,11 @@ var maper = (() => {
             eo.view = true;
           }
           clg("new marker location set");
-          eo.markers.myMark.setLatLng(v1);
+          if (eo.track) {
+            eo.markers.myMark.setLatLng(v1);
+          } else {
+            clg("tracking disabled");
+          }
         }
       })
       .on("locationerror", function (e) {
@@ -81,10 +104,14 @@ var maper = (() => {
     function respFnc(res) {
       clg("geoposition log");
       if (mp.markers && mp.markers.myMark) {
-        mp.markers.myMark.setLatLng(
-          new L.LatLng(res.coords.latitude, res.coords.longitude)
-        );
-        clg("new marker location set");
+        if (mp.track) {
+          mp.markers.myMark.setLatLng(
+            new L.LatLng(res.coords.latitude, res.coords.longitude)
+          );
+          clg("new marker location set");
+        } else {
+          clg("tracking disabled");
+        }
       }
       clg(res);
       clg("LatLng data");
