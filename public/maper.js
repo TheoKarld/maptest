@@ -51,7 +51,10 @@ var maper = (() => {
           map.addLayer(marker);
         } else {
           var v1 = new L.LatLng(e.latitude, e.longitude);
-          //map.setView(v1, 13);
+          if (!eo.view) {
+            map.setView(v1, 13);
+            eo.view = true;
+          }
           clg("new marker location set");
           eo.markers.myMark.setLatLng(v1);
         }
