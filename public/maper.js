@@ -4,16 +4,19 @@ var maper = (() => {
     key = "7OevsHku8lQwYYKVGxtt",
     acuObj = {
       enableHighAccuracy: true,
-      timeout: 5000,
+      timeout: 3000,
       maximumAge: 0,
     },
-    def = [9.7866631, 8.8525467];
+    def = new L.LatLng(9.7866631, 8.8525467);
 
+  //map initialization object
   function startmap() {
     if (map_1) return;
     map_1 = newmap("map");
     geolocate(map_1);
-    map_1.map.on("click", onMapClick);
+    map_1.map.on("click", (e) => {
+      onMapClick(e, map_1);
+    });
     buttonup(map_1, "map_1_rack");
 
     // map_2 = newmap("map2");
@@ -21,6 +24,7 @@ var maper = (() => {
     // buttonup(map_2, "map_2_rack");
   }
 
+  //add function buttons to map
   function buttonup(o, id) {
     var rd = document.getElementById(id),
       loc = DIV("", "m-2 widthun");
@@ -37,7 +41,9 @@ var maper = (() => {
       o.track = v;
       alert(v ? "Tracking Active" : "Tracking Deactivated...");
     }
-    function myf2() {}
+    function myf2() {
+      o.mark = true;
+    }
     addEvent(rd, "click", (e) => {
       e = ee(e);
       if (e.id == "key1") myf1(true);
@@ -70,10 +76,11 @@ var maper = (() => {
         detectRetina: true,
       }
     ).addTo(map);
-    var marker = L.marker([def[0], def[1]]);
+    var marker = L.marker([def.lat, def.lng]);
     eo.markers.myMark = marker;
     map.addLayer(marker);
-    map.setView(new L.LatLng(def[0], def[1]), 10);
+    clg(def.lat + "-" + def.lng);
+    map.setView(def, 10);
     // map
     //   .locate({ setView: true, watch: true })
     //   .on("locationfound", function (e) {
@@ -111,14 +118,20 @@ var maper = (() => {
     return eo;
   }
 
-  function onMapClick(e) {
+  //map loaction marker function
+  function onMapClick(e, map) {
     clg(e);
     //map_1.map.setView(new L.LatLng(e.latlng.lat, e.latlng.lng), 6);
-    L.popup()
-      .setLatLng(e.latlng)
-      .setContent(`You clicked the map at ${e.latlng.toString()}`)
-      .openOn(map_1.map);
+    if (map.mark) {
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(`You clicked the map at ${e.latlng.toString()}`)
+        .openOn(map.map);
+      map.mark = false;
+    }
   }
+
+  //live tracking function
   function geoposition(mp) {
     if (!navigator.geolocation) {
       alert("device not allowing live tracking!!");
@@ -128,12 +141,14 @@ var maper = (() => {
 
     function respFnc(res) {
       var v1 = new L.LatLng(res.coords.latitude, res.coords.longitude);
+      def = v1;
       clg("geoposition log");
       if (mp.lock)
         mp.lock.innerHTML = `Lat - ${res.coords.latitude} / Lng - ${res.coords.longitude}`;
       if (mp.markers && mp.markers.myMark) {
         if (mp.track) {
           mp.markers.myMark.setLatLng(v1);
+          mp.map.setView(def, 10);
           clg("new marker location set");
         } else {
           clg("tracking disabled");
