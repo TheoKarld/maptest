@@ -73,7 +73,7 @@ var maper = (() => {
     var marker = L.marker([def[0], def[1]]);
     eo.markers.myMark = marker;
     map.addLayer(marker);
-    map.setView(new L.LatLng(def[0], def[1]), 5);
+    map.setView(new L.LatLng(def[0], def[1]), 10);
     // map
     //   .locate({ setView: true, watch: true })
     //   .on("locationfound", function (e) {
