@@ -46,7 +46,7 @@ var maper = (() => {
         center: L.latLng(0, 0),
         zoom: 5,
         measureControl: true,
-        "pointer-event": none,
+        "pointer-event": "none",
         minZoom: 1,
       }),
       eo = { map: map, markers: {}, track: true };
