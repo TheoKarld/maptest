@@ -117,17 +117,13 @@ app.post("/myLocation", (req, res) => {
 });
 
 async function calldb() {
-  var plug = new MongoClient(murl);
+  var plug = new MongoClient(url);
   await plug.connect();
   dL = plug;
   db = await plug.db(dbn);
   USC = await db.collection(COL[0]);
   //MFS();
   //readlog();
-  //updatedata(col,{fid:'data-1'},{fid:'data-2',users:{paul_123:{name:'Paul Mike',city:'jos'}}});
-  //findone(col,'fid','data-2',(err,v)=>{(!v)?clg('data not found'):clg(v);});
-
-  //callplg();calladm();
   clg("mongodb connected");
 }
 function readlog() {
