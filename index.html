@@ -13,13 +13,22 @@
       href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"
     />
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/public/basic.js"></script>
     <script type="text/javascript" src="/public/maper.js"></script>
     <script type="text/javascript">
+      var uid,
+        socket = io(),
+        mapCoords = {};
       function newmap() {
+        uid = prompt("enter your name");
+        clg(uid);
         maper.init();
       }
-
+      socket.on("coords", (o) => {
+        clg(o);
+        mapCoords[o.user] = o.coords;
+      });
       addEvent(window, "load", newmap);
     </script>
     <style>

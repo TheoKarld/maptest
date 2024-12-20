@@ -4,7 +4,7 @@ var maper = (() => {
     key = "7OevsHku8lQwYYKVGxtt",
     acuObj = {
       enableHighAccuracy: true,
-      timeout: 3000,
+      timeout: 1000,
       maximumAge: 0,
     },
     def = new L.LatLng(9.7866631, 8.8525467),
@@ -24,12 +24,29 @@ var maper = (() => {
       onMapClick(e, map_1);
     });
     buttonup(map_1, "map_1_rack");
-
+    loopmarks(map_1);
     // map_2 = newmap("map2");
     // geolocate(map_2);
     // buttonup(map_2, "map_2_rack");
   }
-
+  function loopmarks(mp) {
+    setInterval(myf1, 5000);
+    function myf1() {
+      for (var i in mapCoords) {
+        if (!ocn(mapCoords[i])) continue;
+        if (!mp.markers[i]) {
+          clg(i);
+          var mark = L.marker([mapCoords[i].latitude, mapCoords[i].longitude]);
+          mark.addTo(mp.map).bindPopup(`<h1>${i}</h1>`);
+          mp.markers[i] = mark;
+        } else {
+          mp.markers[i].setLatLng(
+            new L.LatLng(mapCoords[i].latitude, mapCoords[i].longitude)
+          );
+        }
+      }
+    }
+  }
   //add function buttons to map
   function buttonup(o, id) {
     var rd = document.getElementById(id),
@@ -107,12 +124,13 @@ var maper = (() => {
         //   fillOpacity: 0.2,
         // });
 
-        if (!eo.markers.myMark) {
+        if (!eo.markers[uid]) {
           def = new L.LatLng(e.latitude, e.longitude);
           var marker = L.marker([e.latitude, e.longitude]);
-          eo.markers.myMark = marker;
-          map.addLayer(marker);
+          eo.markers[uid] = marker;
+          marker.addTo(map).bindPopup(`<h1>${uid}</h1>`);
           map.setView(def, 19);
+        } else {
         }
       })
       .on("locationerror", function (e) {
@@ -171,7 +189,13 @@ var maper = (() => {
         }
       }
       clg("LatLng data");
-      sendmylocation({ user: "", coords: { ...v1 } });
+      sendmylocation({
+        user: uid,
+        coords: {
+          latitude: res.coords.latitude,
+          longitude: res.coords.longitude,
+        },
+      });
     }
     function errFnc(err) {
       clg("position error");
@@ -192,10 +216,7 @@ var maper = (() => {
   }
 
   async function sendmylocation(o) {
-    // clg(o);
-    //var ax = await fetch("/myLocation", { method: "POST", body: Js(o) });
-    //clg(ax);
-    //sendxml({ t: "data", o: o, r: "/myLocation" });
+    socket.emit("mylocation", o);
   }
 
   return {
