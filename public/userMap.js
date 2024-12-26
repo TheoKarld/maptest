@@ -275,7 +275,7 @@ var maper = (() => {
           "",
           [
             v2,
-            did == v
+            did == v || !drivers[v].online
               ? par("")
               : but(
                   "Track",
