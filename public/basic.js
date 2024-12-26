@@ -2340,7 +2340,7 @@ var flashbox = (v, ia, r) => {
     var k = "flash-" + datemap().key + (ocn(zz) + 1),
       x1 = sect(
         "",
-        (r ? "bg-danger" : "bg-success") +
+        (r ? "bred" : "bgreen") +
           " ohidden my-2 px-2 pt-3 widthun white animated zoomIn",
         "",
         [
@@ -3852,15 +3852,6 @@ function yaro(p, c) {
   var a = p.childNodes ? p.childNodes[c] : false;
   a = !c && typeof c != "number" ? p.childNodes : a;
   return a;
-}
-function parse(s) {
-  if (!s) return 0;
-  var t = s.toString();
-  if (isfra(t)) {
-    return parseFloat(s);
-  } else {
-    return parseInt(s);
-  }
 }
 function obc(o, c) {
   var a = cta(o);

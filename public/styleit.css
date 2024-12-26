@@ -36,6 +36,7 @@
 #box13,.box13 {width:13em;height:13em;overflow:hidden;}
 #box14,.box14 {width:14em;height:14em;overflow:hidden;}
 #box15,.box15 {width:15em;height:15em;overflow:hidden;}
+#white,.white {color:#fff!important;}
 #width2,.width2 {width:2em;overflow:hidden;}
 #width3,.width3 {width:3em;overflow:hidden;}
 #width4,.width4 {width:4em;overflow:hidden;}
@@ -94,6 +95,9 @@
 #grey,.grey {color:#666;}
 #grey6,.grey6 {color:#000000;}
 #bpurple,.bpurple {background-color:#4b2c60;border:0;}
+#bgreen,.bgreen {background-color:#00ad2d;border:0;}
+#bgreen2,.bgreen2 {background-color:#1c6e32;border:0;}
+#bred,.bred {background-color:#f90600;}
 #bgrey,.bgrey {background:#666;border:0;}
 #green,.green {color:#126a11;}
 #underline,.underline {text-decoration:underline;}

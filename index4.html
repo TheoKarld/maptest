@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="/public/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/public/styleit.css" />
+    <link rel="stylesheet" href="/public/tailwind.css" />
+    <script type="text/javascript" src="/public/leaflet/leaflet.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"
+    />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/public/basic.js"></script>
+    <script type="text/javascript" src="/public/driverMap.js"></script>
+    <script type="text/javascript">
+      var uid,
+        driverToken = "userData",
+        user,
+        socket = io(),
+        mapCoords = {},
+        trackable = "",
+        ios = "";
+      socket.on("ios", (o) => {
+        ios = o.i;
+        clg(uid);
+        if (uid)
+          socket.emit("who", {
+            id: uid,
+            ios: ios,
+            driver: true,
+            track: trackable ? true : false,
+          });
+      });
+      function newmap() {
+        fetch("/driverAuth/validToken", {
+          method: "GET",
+          headers: { accessToken: driverToken },
+        })
+          .then(async (resp) => {
+            var data = await resp.json();
+            clg("token resp");
+            clg(data);
+            if (data.error) {
+              alert(data.error);
+              return;
+            }
+            uid = data.id;
+            user = data;
+            socket.emit("who", { id: uid, ios: ios, driver: true });
+            maper.init();
+          })
+          .catch((err) => {
+            clg("token error");
+            clg(err);
+          });
+      }
+
+      addEvent(window, "load", newmap);
+    </script>
+    <style>
+      .maper {
+        width: 100%;
+        height: 400px;
+      }
+      .animated-icon {
+        width: 10px;
+        height: 10px;
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        box-shadow: 0px 0px 4px white;
+        transition: all 1s;
+        background-color: #3b8900ed;
+      }
+      .animated-icon-2 {
+        width: 10px;
+        height: 10px;
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        box-shadow: 0px 0px 4px white;
+        transition: all 1s;
+        background-color: #5e00dbed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="p-2">
+      <div class="mt-5 font-bold">
+        <h1 class="fw-bolder">Driver Dashboard</h1>
+      </div>
+      <div class="grid gap-32 gap-md-4 mb-8 md:grid-cols-2 xl:grid-cols-2 mt-2">
+        <div class="widthun">
+          <div id="map" class="maper widthun"></div>
+          <div id="map_1_rack"></div>
+        </div>
+        <div class="widthun">
+          <div id="map2" class="maper widthun"></div>
+          <div id="map_2_rack"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

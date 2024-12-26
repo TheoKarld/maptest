@@ -1,130 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="'text/css" href="/routes/tailwind.css" />
     <title>Signup</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7fc;
-            margin: 0;
-            padding: 0;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f7fc;
+        margin: 0;
+        padding: 0;
+      }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            margin: 50px auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+      .container {
+        width: 100%;
+        max-width: 500px;
+        margin: 50px auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
 
-        h2 {
-            text-align: center;
-            color: #333;
-        }
+      h2 {
+        text-align: center;
+        color: #333;
+      }
 
-        .input-group {
-            margin-bottom: 15px;
-        }
+      .input-group {
+        margin-bottom: 15px;
+      }
 
-        label {
-            font-size: 14px;
-            color: #555;
-            display: block;
-            margin-bottom: 5px;
-        }
+      label {
+        font-size: 14px;
+        color: #555;
+        display: block;
+        margin-bottom: 5px;
+      }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        select {
-            width: 100%;
-            padding: 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      select {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
 
-        .radio-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-        }
+      .radio-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+      }
 
-        .radio-group input[type="radio"] {
-            margin-right: 10px;
-        }
+      .radio-group input[type="radio"] {
+        margin-right: 10px;
+      }
 
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        font-size: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
 
-        button:hover {
-            background-color: #45a049;
-        }
+      button:hover {
+        background-color: #45a049;
+      }
 
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-        }
+      .footer {
+        text-align: center;
+        margin-top: 20px;
+      }
 
-        .footer a {
-            color: #4CAF50;
-            text-decoration: none;
-        }
+      .footer a {
+        color: #4caf50;
+        text-decoration: none;
+      }
 
-        .footer a:hover {
-            text-decoration: underline;
-        }
+      .footer a:hover {
+        text-decoration: underline;
+      }
     </style>
-</head>
-<body>
+    <script type="text/javascript" src="basic.js"></script>
+    <script type="text/javascript">
+      var errs = {},
+        form,
+        flash;
+      function signme(e) {
+        var a = "username,email,password,re-password,phone,account".split(","),
+          b = "driver,customer".split(","),
+          formData = new FormData(form),
+          formProps = Object.fromEntries(formData);
+        if (formProps[a[2]] != formProps[a[3]]) {
+          myerrors({ err: "missmached password" });
+          return;
+        }
+        delete formProps[a[3]];
+        fetch(formProps[a[5]] == b[0] ? "/driverAuth/" : "/userAuth/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: Js(formProps),
+        })
+          .then(async (resp) => {
+            var data = await resp.json();
+            clg(data);
+            if (data.err) {
+              myerrors(data.err);
+              return;
+            }
+            window.location.href = `/`;
+          })
+          .catch((err) => {});
+        clg(formProps);
+      }
+      async function wipeErrs() {
+        if (!ocn(errs)) return;
+        for (var i in errs) await X(errs[i]);
+        errs = {};
+      }
+      function myerrors(data) {
+        var err = document.getElementById("error-box");
+        for (var i in data) {
+          errs[i] = par(data[i], "", "", {
+            style: "color:red;font-size:xx-small;",
+          });
+          APP(err, errs[i]);
+        }
+      }
+      addEvent(window, "load", () => {
+        form = document.getElementById("former");
+        flash = flashbox();
+        addEvent(form, "click", wipeErrs);
+        addEvent(form, "keydown", wipeErrs);
+      });
+    </script>
+  </head>
+  <body>
     <div class="container">
-        <h2>Sign Up</h2>
-        <form action="/api/auth/signup" method="POST">
-            <div class="input-group">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="input-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <div class="input-group">
-                <label for="phone">Phone Number</label>
-                <input type="text" id="phone" name="phone" required>
-            </div>
-            <div class="radio-group">
-                <div>
-                    <input type="radio" id="driver" name="user_type" value="driver" required>
-                    <label for="driver">Driver</label>
-                </div>
-                <div>
-                    <input type="radio" id="customer" name="user_type" value="customer" required>
-                    <label for="customer">Customer</label>
-                </div>
-            </div>
-            <button type="submit">Sign Up</button>
-        </form>
-        <div class="footer">
-            <p>Already have an account? <a href="/login">Login here</a></p>
+      <h2>Sign Up</h2>
+      <form id="former" action="javascript:signme(this)" method="POST">
+        <div class="input-group">
+          <label for="username">Full Name</label>
+          <input type="text" id="username" name="username" required />
         </div>
+        <div class="input-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+        <div class="input-group">
+          <label for="re-password">Verify Password</label>
+          <input type="password" id="er-password" name="re-password" required />
+        </div>
+        <div class="input-group">
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" name="phone" required />
+        </div>
+        <div class="input-group">
+          <label for="account">Account</label>
+          <select name="account" id="account">
+            <option value="driver" required>Driver</option>
+            <option value="customer" required>Customer</option>
+          </select>
+        </div>
+        <div>
+          <div id="error-box"></div>
+        </div>
+        <button type="submit" style="margin-top: 3em">Sign Up</button>
+      </form>
+      <div class="footer">
+        <p>Already have an account? <a href="/">Login here</a></p>
+      </div>
     </div>
-</body>
+  </body>
 </html>

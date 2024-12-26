@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="/public/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/public/styleit.css" />
+    <link rel="stylesheet" href="/public/tailwind.css" />
+    <script type="text/javascript" src="/public/leaflet/leaflet.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"
+    />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/public/basic.js"></script>
+    <script type="text/javascript" src="/public/userMap.js"></script>
+    <script type="text/javascript">
+      var offMap = "",
+        did = "",
+        uid,
+        userToken = "userData",
+        user,
+        socket = io(),
+        driverCoords = "",
+        ios = "",
+        drivers = {},
+        flash;
+      socket.on("ios", (o) => {
+        ios = o.i;
+        clg(o);
+        if (uid) {
+          socket.emit("who", { id: uid, ios: ios, customer: true });
+        }
+        if (did) socket.emit("joinRoom", { id: did });
+      });
+      socket.on("driveron", (o) => {
+        clg("driveron");
+        clg(o);
+        if (drivers[o.id]) drivers[o.id].online = true;
+        maper.showdrivers();
+      });
+      socket.on("driveroff", (o) => {
+        clg("driveroff");
+        clg(o);
+        if (drivers[o.id]) drivers[o.id].online = false;
+        maper.showdrivers();
+      });
+      socket.on("ileft", (o) => {
+        if (did != o.id) return;
+        maper.rmvMarker(o.id);
+        maper.lockText(`${driverCoords.name} went off the radar`);
+        offMap = o.id;
+        maper.showdrivers();
+      });
+      socket.on("mylocation", (obj) => {
+        clg(obj);
+        drivers[obj.id] = obj;
+        if (did != obj.id) {
+          socket.emit("leaveRoom", { id: obj.id });
+          return;
+        }
+        if (offMap) {
+          if (offMap == did) socket.emit("joinRoom", { id: did });
+          if (offMap == did)
+            flash.f1(`${obj.name} just came back on the radar`);
+          offMap = false;
+          maper.showdrivers();
+        }
+        driverCoords = obj;
+      });
+      function newmap() {
+        flash = flashbox();
+        fetch("/userAuth/validToken", {
+          method: "GET",
+          headers: { accessToken: userToken },
+        })
+          .then(async (resp) => {
+            var data = await resp.json();
+            clg("token resp");
+            clg(data);
+            if (data.error) {
+              flash.f1(data.error, "", true);
+              return;
+            }
+            uid = data.id;
+            socket.emit("who", { id: uid, ios: ios, customer: true });
+            user = data;
+            maper.init();
+            calldrivers();
+          })
+          .catch((err) => {
+            clg("token error");
+            clg(err);
+          });
+      }
+      function calldrivers() {
+        fetch("/drivers", {
+          method: "GET",
+          headers: { accessToken: userToken },
+        }).then(async (resp) => {
+          var data = await resp.json();
+          if (data.error) {
+            flash.f1(data.error, "", true);
+            return;
+          }
+          for (var i in data) drivers[i] = data[i];
+          maper.showdrivers();
+        });
+      }
+
+      addEvent(window, "load", newmap);
+    </script>
+    <style>
+      .maper {
+        width: 100%;
+        height: 400px;
+      }
+      .animated-icon {
+        width: 10px;
+        height: 10px;
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        box-shadow: 0px 0px 4px white;
+        transition: all 1s;
+        background-color: #3b8900ed;
+      }
+      .animated-icon {
+        width: 10px;
+        height: 10px;
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        box-shadow: 0px 0px 4px white;
+        transition: all 1s;
+        background-color: #5e00dbed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="p-2">
+      <div class="mt-5"><h1 class="fw-bolder">User Dashboard</h1></div>
+      <div class="grid gap-32 gap-md-4 mb-8 md:grid-cols-2 xl:grid-cols-2 mt-2">
+        <div class="widthun">
+          <div id="map" class="maper widthun"></div>
+          <div id="map_1_rack"></div>
+        </div>
+        <div class="widthun">
+          <h1 class="fw-bolder">Drivers</h1>
+          <div id="drivers" class="widthun"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -9,8 +9,6 @@ var maper = (() => {
     },
     def = new L.LatLng(9.7866631, 8.8525467),
     mapTiles = {
-      static: "http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
-      hybrid: "http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}",
       satelite: "http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
       terrain: "http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
     };
@@ -19,15 +17,12 @@ var maper = (() => {
   function startmap() {
     if (map_1) return;
     map_1 = newmap("map");
-    geolocate(map_1);
+    geoposition(map_1);
     map_1.map.on("click", (e) => {
       onMapClick(e, map_1);
     });
     buttonup(map_1, "map_1_rack");
-    loopmarks(map_1);
-    // map_2 = newmap("map2");
-    // geolocate(map_2);
-    // buttonup(map_2, "map_2_rack");
+    //loopmarks(map_1);
   }
   function loopmarks(mp) {
     setInterval(myf1, 5000);
@@ -37,7 +32,7 @@ var maper = (() => {
         if (!mp.markers[i]) {
           clg(i);
           var mark = L.marker([mapCoords[i].latitude, mapCoords[i].longitude]);
-          mark.addTo(mp.map).bindPopup(`<h1>${i}</h1>`);
+          mark.addTo(mp.map).bindPopup(`<h1>${i}</h1>`).openPopup();
           mp.markers[i] = mark;
         } else {
           mp.markers[i].setLatLng(
@@ -48,22 +43,30 @@ var maper = (() => {
     }
   }
   //add function buttons to map
+
   function buttonup(o, id) {
     var rd = document.getElementById(id),
-      loc = DIV("", "m-2 widthun");
+      loc = DIV("", "m-2 widthun", "", [
+        par(user.username),
+        par(`driver's ID - ${uid}`),
+      ]);
     o.lock = loc;
     feedme(rd, [
       DIV("", "m-2 my-3", "", [
         loc,
-        but("start tracking", "button", "key1", "btn btn-md btn-success"),
-        but("stop tracking", "button", "key2", "btn btn-md btn-warning"),
-        but("mark location", "button", "key3", "btn btn-md btn-primary"),
-        but("mark distance", "button", "key4", "btn btn-md btn-primary"),
+        but("Toggle Tracking", "button", "key3", "btn btn-md btn-primary"),
       ]),
     ]);
-    function myf1(v) {
-      o.track = v;
-      alert(v ? "Tracking Active" : "Tracking Deactivated...");
+    function myf1() {
+      o.track = o.track ? false : true;
+      trackable = o.track;
+      alert(o.track ? "Tracking Active" : "Tracking Deactivated...");
+      fetch(`/mapAuth/track/${uid}/${o.track ? "on" : "off"}`, {
+        method: "GET",
+        headers: { accessToken: driverToken },
+      })
+        .then((resp) => {})
+        .catch((err) => {});
     }
     function myf2() {
       alert("please click any where once to mark point");
@@ -78,21 +81,21 @@ var maper = (() => {
     }
     addEvent(rd, "click", (e) => {
       e = ee(e);
-      if (e.id == "key1") myf1(true);
+      if (e.id == "key1") myf1s(true);
       if (e.id == "key2") myf1(false);
-      if (e.id == "key3") myf2();
+      if (e.id == "key3") myf1();
       if (e.id == "key4") myf3();
     });
   }
-  //get the distance between two coords in k/m
+
   function coordistance(o) {
-    //o.map.distance(o.dist_1, o.dist_2).toFixed()
     var v1 = !o.km
       ? o.map.distance(o.dist_1, o.dist_2).toFixed(2)
       : rnd(o.map.distance(o.dist_1, o.dist_2) / 1000, 2);
     clg(v1);
     return v1;
   }
+
   function newmap(v, fnc) {
     var map = L.map(v, {
         center: L.latLng(9.7866631, 8.8525467),
@@ -101,8 +104,9 @@ var maper = (() => {
         "pointer-event": "none",
         minZoom: 1,
       }),
-      eo = { map: map, markers: {}, track: true, mark_1: "" };
-    mapinteraction(map, true); //https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}
+      eo = { map: map, markers: {}, track: false, mark_1: "" };
+    L.Control.geocoder().addTo(map);
+    //mapinteraction(map, true); //https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}
     L.tileLayer(mapTiles.terrain, {
       //style URL
       tileSize: 512,
@@ -115,23 +119,7 @@ var maper = (() => {
     map
       .locate({ setView: false, watch: false })
       .on("locationfound", function (e) {
-        //clg(e);
-
-        // var circle = L.circle([e.latitude, e.longitude], e.accuracy / 2, {
-        //   weight: 1,
-        //   color: "blue",
-        //   fillColor: "#cacaca",
-        //   fillOpacity: 0.2,
-        // });
-
-        if (!eo.markers[uid]) {
-          def = new L.LatLng(e.latitude, e.longitude);
-          var marker = L.marker([e.latitude, e.longitude]);
-          eo.markers[uid] = marker;
-          marker.addTo(map).bindPopup(`<h1>${uid}</h1>`);
-          map.setView(def, 19);
-        } else {
-        }
+        //liveTrack(eo, e);
       })
       .on("locationerror", function (e) {
         console.log(e);
@@ -167,40 +155,65 @@ var maper = (() => {
       alert("device not allowing live tracking!!");
       return;
     }
-    navigator.geolocation.watchPosition(respFnc, errFnc, acuObj);
+    navigator.geolocation.watchPosition(
+      (res) => {
+        liveTrack(mp, res.coords);
+      },
+      errFnc,
+      acuObj
+    );
 
-    function respFnc(res) {
-      var v1 = new L.LatLng(res.coords.latitude, res.coords.longitude),
-        v2;
-      def = v1;
-      clg("geoposition log");
-      if (mp.lock && mp.mark_1) {
-        v2 = coordistance({ map: mp.map, dist_1: mp.mark_1, dist_2: v1 });
-        mp.lock.innerHTML = `You are currently ${v2}Metres away from your Mark 1`;
-      }
-      if (mp.markers && mp.markers.myMark) {
-        if (mp.track) {
-          mp.markers.myMark.setLatLng(v1);
-          //mp.map.setView(def, 18);
-          mp.map.panTo(v1);
-          clg("new marker location set");
-        } else {
-          clg("tracking disabled");
-        }
-      }
-      clg("LatLng data");
-      sendmylocation({
-        user: uid,
-        coords: {
-          latitude: res.coords.latitude,
-          longitude: res.coords.longitude,
-        },
-      });
-    }
     function errFnc(err) {
       clg("position error");
       clg(err);
     }
+  }
+  function iconer(c) {
+    var icon = L.divIcon({
+      iconSize: [17, 17],
+      iconAnchor: [10, 10],
+      popupAnchor: [0, 0],
+      shadowSize: [10, 0],
+      className: c,
+    });
+    return icon;
+  }
+  function liveTrack(mp, res) {
+    var { latitude, longitude } = res,
+      v1 = new L.LatLng(latitude, longitude),
+      v2;
+    def = v1;
+    clg("geoposition log");
+    if (mp.lock && mp.mark_1) {
+      v2 = coordistance({ map: mp.map, dist_1: mp.mark_1, dist_2: v1 });
+      mp.lock.innerHTML = `You are currently ${v2}Metres away from your Mark 1`;
+    }
+    if (!mp.markers[uid]) {
+      def = new L.LatLng(latitude, longitude);
+      var ic = iconer("animated-icon-2"),
+        marker = L.marker([latitude, longitude], {
+          icon: ic,
+          title: user.usernme,
+        });
+      mp.markers[uid] = marker;
+      marker.addTo(mp.map).bindPopup(`<h1>${user.username}</h1>`).openPopup();
+      mp.map.setView(def, 19);
+    } else {
+      mp.markers[uid].setLatLng(v1);
+      if (mp.track) {
+        //mp.map.setView(def, 18);
+        mp.map.panTo(v1);
+        clg("new marker location set");
+      } else {
+        clg("tracking disabled");
+      }
+    }
+    clg("LatLng data");
+    sendmylocation({
+      latitude,
+      longitude,
+      time: datemap(),
+    });
   }
 
   function mapinteraction(map, state) {
@@ -210,13 +223,19 @@ var maper = (() => {
       map.scrollWheelZoom.enable();
     }
   }
-  async function geolocate(mp) {
-    await L.Control.geocoder().addTo(mp.map);
-    geoposition(mp);
-  }
 
   async function sendmylocation(o) {
-    socket.emit("mylocation", o);
+    fetch("/mapAuth/location", {
+      method: "POST",
+      headers: { accessToken: driverToken, "Content-Type": "application/json" },
+      body: Js(o),
+    })
+      .then(async (resp) => {
+        var data = await resp.json();
+      })
+      .catch((err) => {
+        clg(err);
+      });
   }
 
   return {

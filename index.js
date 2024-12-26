@@ -1,3 +1,5 @@
+const { validateToken } = require("./middlewares/AuthMiddleware");
+
 var murl = "mongodb://127.0.0.1:27017",
   url = "mongodb+srv://codeplay:cDoV4OgCwMcMwSAD@cluster0.u9bv6.mongodb.net/",
   express = require("express"),
@@ -5,20 +7,29 @@ var murl = "mongodb://127.0.0.1:27017",
   http = require("http"),
   server = http.Server(app),
   io = require("socket.io")(server),
+  { fsread, fswrite, edey, ocn, mrgarrays } = require("./routes/basics"),
   cors = require("cors"),
   { MongoClient } = require("mongodb"),
   fs = require("fs"),
   bodyParser = require("body-parser"),
+  { userRoute, passUserLog, userWriter } = require("./routes/Users"),
+  { driverRoute, driverWriter, passDriverLog } = require("./routes/Drivers"),
+  {
+    mapRoute,
+    passMapCast,
+    mapDrivers,
+    newtrackable,
+  } = require("./routes/Maps"),
   path = require("path"),
   _dirname = path.resolve(),
-  dbn = "codeplay",
+  dbn = "codeplaytest",
   defRoom = "room_12345",
   db = "",
   SOK = {},
-  UA = "username,email".split(","),
-  DA = "username,email,phone number".split(","),
+  UA = "username,email,password,phone,account".split(","),
   UO = "userID,info,base_address,trackings".split(","),
   DO = "driversID,info,status,activities".split(","),
+  rooms = ["usersRoom", "driversRoom"],
   COL = ["users"],
   OID = ["users_log", "drivers_log"],
   USC,
@@ -28,14 +39,19 @@ var murl = "mongodb://127.0.0.1:27017",
     "075664f2a5214520b9db2e8b9125d666_8dc082bafcf2964ee11cdf206f598bfe5b7c0aa38073539f2c03ecde6796c949";
 
 calldb();
-
-app.options("*", cors());
+app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
-app.use(cors({ origin: "*" }));
 app.use(express.static(_dirname));
 app.use(express.static(_dirname + "/public"));
+app.use("/userAuth", userRoute);
+app.use("/driverAuth", driverRoute);
+app.use("/mapAuth", mapRoute);
+app.use(cors());
+passMapCast(newbroadcast);
+mapDrivers(driverById);
+userWriter(writelog);
+driverWriter(writelog);
 app.use((req, res, next) => {
   res.append("Access-Control-Allow-Origin", "*");
   res.append("Access-Control-Allow-Headers", "Content-Type");
@@ -55,125 +71,101 @@ app.use((req, res, next) => {
 app.get("/", (req, res) => {
   res.send(fsread("index.html"));
 });
-app.post("/api/auth/signup", async (req, res) => {
-  const { name, email, password, phone, user_type } = req.body;
-  clg(req.body);
-  try {
-    const existingUser = checkUser(req.body);
-    clg(existingUser);
-    if (ocn(existingUser)) return res.status(400).json(existingUser);
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    var uid = `user_${hashedPassword}`,
-      user = mrgarrays(UO, [
-        uid,
-        {
-          username: name,
-          email,
-          password: hashedPassword,
-          phoneNumber: phone,
-          user_type,
-        },
-        "",
-        {},
-      ]);
-    usersLog.users[uid] = user;
-    writelog("usr");
-    res.status(201).json(user);
-  } catch (error) {
-    console.error("Error during signup:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
+app.get("/signup", (req, res) => {
+  res.send(fsread("signup.html"));
 });
-
-function mrgarrays(a, b) {
-  var o = {};
-  for (var i in a) o[a[i]] = b[i];
-  return o;
-}
-function checkUser(o) {
-  var ex = {},
-    a = usersLog.user;
-  for (var i in a) {
-    if (a[i].email == o.email) {
-      ex.msg = "Email already exists";
-      break;
-    }
-    if (a[i].username == o.name) {
-      ex.msg = "Username already exists";
-      break;
-    }
-  }
-  return ex;
-}
 
 app.post("/", (req, res) => {
   var a = req.body;
 });
-app.post("/myLocation", (req, res) => {
-  var a = req.body;
-  clg(a);
-  res.json({ hello: true });
+app.get("/drivers", validateToken, (req, res) => {
+  var x = newtrackable("", true),
+    a = driversLog.drivers,
+    b = {};
+  for (var i in a)
+    b[i] = { name: a[i][DO[1]][UA[0]], id: i, online: x[i] ? true : false };
+  res.json(b);
 });
+function newbroadcast(cast) {
+  io.to(cast.room).emit(cast.event, cast.msg);
+}
+function driverById(id) {
+  return !driversLog || !driversLog.drivers[id]
+    ? false
+    : driversLog.drivers[id];
+}
 
 async function calldb() {
-  var plug = new MongoClient(url);
+  var plug = new MongoClient(murl);
   await plug.connect();
   dL = plug;
   db = await plug.db(dbn);
-  USC = await db.collection(COL[0]);
+  USC = db.collection(COL[0]);
+  //wipedb();
   //MFS();
-  //readlog();
+  readlog();
   clg("mongodb connected");
 }
 function readlog() {
   findone(USC, "fid", OID[0], (v) => {
     if (!v) return;
     usersLog = v;
-    clg(v);
+    passUserLog(usersLog);
+    clg(`${v.fid} loaded with ${ocn(v.users)} user(s)`);
   });
   findone(USC, "fid", OID[1], (v) => {
-    if (v) driversLog = v;
+    if (!v) return;
+    driversLog = v;
+    passDriverLog(driversLog);
+    clg(`${v.fid} loaded with ${ocn(v.drivers)} driver(s)`);
   });
 }
 function insert2db(cl, o) {
-  findone(USC, "fid", o.fid, (v) => {
+  if (!cl) return;
+  findone(cl, "fid", o.fid, (v) => {
     if (v) {
       clg(`${o.fid} already exist`);
       return;
     }
     myf1();
   });
-  function myf1() {
-    cl.insertOne(o, (err) => {
-      if (err) {
-        clg(err);
-        return;
-      }
-      clg("data added successfully...");
-    });
+  async function myf1() {
+    var a = await cl.insertOne(o);
+    clg(
+      a.acknowledged
+        ? `${o.fid} was added successfully`
+        : `there was an error inserting ${o.fid}`
+    );
   }
 }
 function rmvdata(cl, o) {
   cl.findOneAndDelete(o);
   clg("data deleted successfully...");
 }
-
 function clg(t) {
   console.log(t);
 }
 function MFS() {
   findone(USC, "fid", OID[0], (v) => {
-    if (!v) insert2db(USC, userslog());
+    if (!v) {
+      insert2db(USC, userslog());
+    } else {
+      clg("userlog dey");
+    }
   });
   findone(USC, "fid", OID[1], (v) => {
-    if (!v) insert2db(USC, driverslog());
+    if (!v) {
+      insert2db(USC, driverslog());
+    } else {
+      clg("driverlog dey");
+    }
   });
 }
 async function findone(cl, m, o, oc) {
   if (!db || !cl) return;
-  var doc = await cl.find({ [m]: o }).toArray()[0];
-  oc(ocn(doc) ? doc : false);
+  var doc = await cl.find({ [m]: o }).toArray(),
+    dcc = doc[0];
+  oc(dcc ? dcc : false);
 }
 function writelog(d) {
   if (d == "usr") updatedata(USC, { fid: OID[0] }, usersLog);
@@ -181,27 +173,17 @@ function writelog(d) {
 }
 function updatedata(cl, o, n) {
   cl.findOneAndReplace(o, n, { upsert: true });
-  clg("data updated siuccessfully");
+  clg(`${o.fid} updated siuccessfully`);
 }
-function ocn(o) {
-  var c = 0;
-  for (var i in o) {
-    c += 1;
-  }
-  return c;
+function wipedb() {
+  if (!db) return;
+  var a = [USC];
+  for (var i in a) if (a[i]) removeall(a[i]);
 }
-function fswrite(l, o) {
-  var a = typeof o == "object" ? Js(o) : o;
-  fs.createWriteStream(l).write(a);
-  clg("fs write successfully!!");
-  a = "";
-}
-function fsread(l) {
-  if (!edey(l)) return "";
-  return fs.readFileSync(l, "utf8");
-}
-function edey(l) {
-  return fs.existsSync(l);
+function removeall(cl) {
+  if (!db || !cl) return;
+  clg(cl);
+  cl.remove({});
 }
 
 var userslog = () => {
@@ -209,7 +191,7 @@ var userslog = () => {
   return a;
 };
 var driverslog = () => {
-  var a = { fid: OID[0], drivers: {} };
+  var a = { fid: OID[1], drivers: {} };
   return a;
 };
 server.listen(3003, clg);
@@ -218,15 +200,37 @@ io.on("connection", (socket) => {
   if (!SOK[socket.id]) {
     SOK[socket.id] = { s: socket };
     socket.emit("ios", { i: socket.id });
+    clg("new connection");
   }
-
-  socket.join(defRoom);
-  io.to(defRoom).emit("groupMsg", { hello: "room mates" });
-  //socket.leave(defRoom);
-  socket.on("newuser", (obj) => {
-    socket.emit("usercreated", array);
+  socket.on("who", (obj) => {
+    if (SOK[obj.ios]) SOK[obj.ios] = { ...SOK[obj.ios], ...obj };
+    clg(`${obj.id} just connected`);
+    if (obj.customer) socket.join(rooms[0]);
+    if (obj.driver && obj.track) newtrackable({ id: obj.id, stats: true });
   });
-  socket.on("mylocation", (o) => {
-    io.to(defRoom).emit("coords", o);
+  socket.once("disconnect", async function () {
+    var id = socket.id;
+    if (SOK[id]) {
+      if (SOK[id].driver) {
+        io.to(SOK[id].id).emit("ileft", { id: SOK[id].id });
+        io.to(rooms[0]).emit("diveroff", { id: SOK[id].id });
+        newtrackable({ id: SOK[id].id, stats: false });
+        clg(`${SOK[id].id} went off`);
+      }
+      delete SOK[id];
+    }
+
+    clg("user diconnected..");
+  });
+
+  //socket.join(defRoom);
+  //io.to(defRoom).emit("groupMsg", { hello: "room mates" });
+  //socket.leave(defRoom);
+  socket.on("joinRoom", (obj) => {
+    clg("joinroom");
+    socket.join(obj.id);
+  });
+  socket.on("leaveRoom", (obj) => {
+    socket.leave(obj.id);
   });
 });
