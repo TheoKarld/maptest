@@ -166,7 +166,7 @@ var maper = (() => {
     }
     if (!mp.markers[uid]) {
       def = new L.LatLng(latitude, longitude);
-      var ic = iconer("animated-icon-2"),
+      var ic = iconer("animated-icon"),
         marker = L.marker([latitude, longitude], {
           icon: ic,
           title: user.usernme,
