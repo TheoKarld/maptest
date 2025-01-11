@@ -1,12 +1,15 @@
 const { validateToken } = require("./middlewares/AuthMiddleware");
 
-var murl = "mongodb://127.0.0.1:27017",
-  url = "mongodb+srv://codeplay:cDoV4OgCwMcMwSAD@cluster0.u9bv6.mongodb.net/",
+var { configs } = require("./configs/config"),
+  murl = configs.murl,
+  url = configs.url,
   express = require("express"),
   app = express(),
   http = require("http"),
   server = http.Server(app),
-  io = require("socket.io")(server),
+  io = require("socket.io")(server, {
+    cors: { origin: "*", methods: ["GET", "POST"] },
+  }),
   { fsread, fswrite, edey, ocn, mrgarrays } = require("./routes/basics"),
   cors = require("cors"),
   { MongoClient } = require("mongodb"),
@@ -45,15 +48,6 @@ app.use(express.static(_dirname));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization"
-  );
-  next();
-});
 
 app.use("/userAuth", userRoute);
 app.use("/driverAuth", driverRoute);
