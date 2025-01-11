@@ -99,8 +99,8 @@ function newUser(o, fn) {
     obj.created = dte;
     obj.id = id;
     usersLog.users[id] = obj;
-    clg("new driver added");
-    userWriter && writeFnc("usr");
+    clg("new user added");
+    writeFnc && writeFnc("usr");
     fn(obj);
   });
 }

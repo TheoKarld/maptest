@@ -40,18 +40,29 @@ var murl = "mongodb://127.0.0.1:27017",
 
 calldb();
 app.use(express.json());
+app.use(express.static(_dirname));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(_dirname));
-app.use(express.static(_dirname + "/public"));
+app.use(cors());
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization"
+  );
+  next();
+});
+
 app.use("/userAuth", userRoute);
 app.use("/driverAuth", driverRoute);
 app.use("/mapAuth", mapRoute);
-app.use(cors());
 passMapCast(newbroadcast);
 mapDrivers(driverById);
 userWriter(writelog);
 driverWriter(writelog);
+
 app.use((req, res, next) => {
   res.append("Access-Control-Allow-Origin", "*");
   res.append("Access-Control-Allow-Headers", "Content-Type");
@@ -194,7 +205,7 @@ var driverslog = () => {
   var a = { fid: OID[1], drivers: {} };
   return a;
 };
-server.listen(3003, clg);
+server.listen(3003);
 console.log("express server active");
 io.on("connection", (socket) => {
   if (!SOK[socket.id]) {

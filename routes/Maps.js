@@ -23,6 +23,7 @@ mapRoute.get("/track/:id/:tog", validateToken, (req, res) => {
     event: tog == "on" ? "driveron" : "driveroff",
     msg: { id: id },
   });
+  res.json({ success: true });
 });
 mapRoute.post("/location", validateToken, (req, res) => {
   var user = req.user,

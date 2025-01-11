@@ -12,14 +12,16 @@ var bcrypt = require("bcrypt"),
     jp,
     Js,
     fsread,
+    cto,
   } = require("./basics"),
   driverRoute = express.Router(),
   { validateToken } = require("../middlewares/AuthMiddleware"),
   { sign } = require("jsonwebtoken"),
-  UA = "username,email,password,phone,account".split(","),
-  DO = "driversID,info,status,activities".split(","),
+  UA = "username,email,password,phone,account,licenseNumber".split(","),
+  DO = "driversID,info,status,activities,earnings".split(","),
   driversLog = "",
   driversToken = {},
+  months = "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec".split(","),
   app,
   writeFnc;
 
@@ -51,7 +53,7 @@ driverRoute.get("/myinfo/:id", async (req, res) => {
     return;
   }
   var { username, email } = a[DO[1]];
-  if (!driversToken[id]) driversToken[id] = signMe(username, id);
+  if (!driversToken[id]) driversToken[id] = signMe(a);
   b = await fsread("index4.html")
     .toString()
     .replace("userData", driversToken[id]);
@@ -59,8 +61,8 @@ driverRoute.get("/myinfo/:id", async (req, res) => {
 });
 
 driverRoute.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-  const user = driverDey(username);
+  const { email, password } = req.body;
+  const user = driverDey(email);
   if (!password) {
     res.json({ error: "password was not passed" });
     return;
@@ -71,20 +73,32 @@ driverRoute.post("/login", async (req, res) => {
   }
   bcrypt.compare(password, user[DO[1]][UA[2]]).then((same) => {
     if (!same) {
-      res.json({ error: "Wrong Username And Password Combination" });
+      res.json({ error: "Wrong email And Password Combination" });
       return;
     }
-    if (!driversToken[user.id])
-      driversToken[user.id] = signMe(username, user.id);
-    res.json({ route: user.id });
+    if (!driversToken[user.id]) driversToken[user.id] = signMe(user);
+    res.json({ route: driversToken[user.id] });
   });
 });
 
-function signMe(username, id) {
-  var Sign = sign(
-    { username: username, id: id, account: "Driver" },
-    "SmartMoveTokenSecret"
-  );
+function earnrack() {
+  var a = driversLog.drivers,
+    b = "",
+    y = datemap().y;
+  for (var i in a)
+    if (!a[i][DO[4]] || !a[i][DO[4]][y] || !a[i][DO[3]][y]) {
+      if (!b) b = true;
+      if (!a[i][DO[4]])
+        driversLog.drivers[i][DO[4]] = {
+          [y]: cto(months, { funds: {}, active: {}, deliveries: {} }),
+        };
+      if (!a[i][DO[4]][y])
+        a[i][DO[4]][y] = cto(months, { funds: {}, active: {}, deliveries: {} });
+      if (!a[i][DO[3]][y]) a[i][DO[3]][y] = cto(months, {});
+    }
+}
+function signMe(user) {
+  var Sign = sign(user, "SmartMoveTokenSecret");
   return Sign;
 }
 function newDriver(o, fn) {
@@ -99,7 +113,13 @@ function newDriver(o, fn) {
   bcrypt.hash(password, 10).then((hash) => {
     o.password = hash;
     id = `driver_${lastUser + 1}_${dte.key}`;
-    obj = mrgarrays(DO, [id, o, "", {}]);
+    obj = mrgarrays(DO, [
+      id,
+      o,
+      "",
+      { [dte.y]: cto(months, { funds: {}, active: {}, deliveries: {} }) },
+      { [dte.y]: cto(months, { funds: {}, active: {}, deliveries: {} }) },
+    ]);
     obj.created = dte;
     obj.id = id;
     driversLog.drivers[id] = obj;
@@ -120,7 +140,10 @@ function checkDriver(o) {
       ex[UA[1]] = "Email already exists";
     }
     if (a[i][DO[1]][UA[3]] == o[UA[3]]) {
-      ex[UA[1]] = "Phone Number already taken";
+      ex[UA[3]] = "Phone Number already taken";
+    }
+    if (a[i][DO[1]][UA[5]] == o[UA[5]]) {
+      ex[UA[5]] = "licenseNumber already taken";
     }
   }
   return ex;
@@ -131,7 +154,7 @@ function driverDey(k) {
   var d = false,
     p = driversLog.drivers;
   for (var i in p)
-    if (cleaname(p[i][DO[1]][UA[0]]) == cleaname(k)) {
+    if (cleaname(p[i][DO[1]][UA[1]]) == cleaname(k)) {
       d = p[i];
       break;
     }
@@ -142,6 +165,7 @@ function driverWriter(fnc) {
 }
 function passDriverLog(o) {
   driversLog = o;
+  earnrack();
 }
 
 module.exports = { driverRoute, driverWriter, passDriverLog };
